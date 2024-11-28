@@ -65,10 +65,10 @@ CREATE TABLE public.products (
 ALTER TABLE public.products OWNER TO sam;
 
 --
--- Name: student; Type: TABLE; Schema: public; Owner: sam
+-- Name: students; Type: TABLE; Schema: public; Owner: sam
 --
 
-CREATE TABLE public.student (
+CREATE TABLE public.students (
     student_id integer NOT NULL,
     student_name character varying(50) NOT NULL,
     household_id integer NOT NULL,
@@ -76,7 +76,19 @@ CREATE TABLE public.student (
 );
 
 
-ALTER TABLE public.student OWNER TO sam;
+ALTER TABLE public.students OWNER TO sam;
+
+--
+-- Name: supermarkets; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.supermarkets (
+    supermarket_id integer NOT NULL,
+    name character varying(50)
+);
+
+
+ALTER TABLE public.supermarkets OWNER TO postgres;
 
 --
 -- Data for Name: households; Type: TABLE DATA; Schema: public; Owner: sam
@@ -103,10 +115,18 @@ COPY public.products (product_id, product_name, price, availability, supermarket
 
 
 --
--- Data for Name: student; Type: TABLE DATA; Schema: public; Owner: sam
+-- Data for Name: students; Type: TABLE DATA; Schema: public; Owner: sam
 --
 
-COPY public.student (student_id, student_name, household_id, email) FROM stdin;
+COPY public.students (student_id, student_name, household_id, email) FROM stdin;
+\.
+
+
+--
+-- Data for Name: supermarkets; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.supermarkets (supermarket_id, name) FROM stdin;
 \.
 
 
@@ -135,26 +155,34 @@ ALTER TABLE ONLY public.products
 
 
 --
--- Name: student student_email_key; Type: CONSTRAINT; Schema: public; Owner: sam
+-- Name: students student_email_key; Type: CONSTRAINT; Schema: public; Owner: sam
 --
 
-ALTER TABLE ONLY public.student
+ALTER TABLE ONLY public.students
     ADD CONSTRAINT student_email_key UNIQUE (email);
 
 
 --
--- Name: student student_pkey; Type: CONSTRAINT; Schema: public; Owner: sam
+-- Name: students student_pkey; Type: CONSTRAINT; Schema: public; Owner: sam
 --
 
-ALTER TABLE ONLY public.student
+ALTER TABLE ONLY public.students
     ADD CONSTRAINT student_pkey PRIMARY KEY (student_id);
 
 
 --
--- Name: student fk_household; Type: FK CONSTRAINT; Schema: public; Owner: sam
+-- Name: supermarkets supermarkets_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.student
+ALTER TABLE ONLY public.supermarkets
+    ADD CONSTRAINT supermarkets_pkey PRIMARY KEY (supermarket_id);
+
+
+--
+-- Name: students fk_household; Type: FK CONSTRAINT; Schema: public; Owner: sam
+--
+
+ALTER TABLE ONLY public.students
     ADD CONSTRAINT fk_household FOREIGN KEY (household_id) REFERENCES public.households(household_id);
 
 
@@ -171,7 +199,15 @@ ALTER TABLE ONLY public.order_items
 --
 
 ALTER TABLE ONLY public.order_items
-    ADD CONSTRAINT fk_student_id FOREIGN KEY (student_id) REFERENCES public.student(student_id);
+    ADD CONSTRAINT fk_student_id FOREIGN KEY (student_id) REFERENCES public.students(student_id);
+
+
+--
+-- Name: products supermarket_id; Type: FK CONSTRAINT; Schema: public; Owner: sam
+--
+
+ALTER TABLE ONLY public.products
+    ADD CONSTRAINT supermarket_id FOREIGN KEY (supermarket_id) REFERENCES public.supermarkets(supermarket_id);
 
 
 --
