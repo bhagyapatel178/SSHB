@@ -76,8 +76,9 @@ def filefiller(): #fills file with dummy data
                 price = f"{round(random.uniform(0.5, 4), 2):.2f}"
                 availability = '0' if random.randint(0, 10) > 9 else '1'
                 file.write(productid + "," + productname + "," + str(price) + "," + availability + "," + str(supermarke + 1) + "\n") #writes data in the form: id,name,price,availability,supermarketid
-def filetodatabase():
-    connection = sqlite3.connect("SSHDB.db") #connecting to the DB
+
+def filetodatabase(db_name="SSHDB.db"):
+    connection = sqlite3.connect(db_name) #connecting to the DB
     cursor = connection.cursor() #tool to navigate DB
 
 
@@ -100,6 +101,8 @@ def filetodatabase():
 
     connection.commit()
     connection.close()
+
+    
 def selectfromdatabase(productname, shop): #all products: productname = "getall" #all shops: shop = 0
     connection = sqlite3.connect("SSHDB.db") #connecting to DB
     cursor = connection.cursor() #tool to navigate DB
@@ -124,6 +127,7 @@ def selectfromdatabase(productname, shop): #all products: productname = "getall"
         price = item[2]
         availability = item[3]
         print(f"Product: {name}, Price: {price}, Available: {availability}")
+
 create_database()  # Create the database with all necessary tables
 filefiller()  # Fill the API.txt with sample data
 filetodatabase()  # Insert data from API.txt into database
