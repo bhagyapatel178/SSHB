@@ -15,7 +15,7 @@ from kivy.graphics import Color, Rectangle
 
 class MainApp(App):
     def build(self):
-        self.theme_color = [0.2, 0.6, 0.8, 1]
+        self.theme_color = [29,29,31,1]
         self.basket = []  # List to store items added to the basket
 
         # Main layout
@@ -37,7 +37,7 @@ class MainApp(App):
             size_hint=(None, None),
             size=(200, 50),
             pos_hint={'left': 1, 'top': 1},
-            color=[1, 1, 1, 1]
+            color=[0, 0, 0, 1]
         )
         top_layout.add_widget(title)
 
@@ -45,7 +45,7 @@ class MainApp(App):
             source='Depositphotos_484354208_S.jpg',
             size_hint=(None, None),
             size=(100,100),
-            pos_hint={'right': 1, 'top': 1},
+            pos_hint={'right': 1, 'top': 1}
         )
         top_layout.add_widget(profile_picture)
 
@@ -67,7 +67,7 @@ class MainApp(App):
             text="Select Store",
             size_hint=(None, None),
             size=(150, 50),
-            pos_hint={'left': 1, 'top': 0.5},
+            pos_hint={'top': 0.45},
             background_normal='',
             background_color=[0.8,0.8,0.8,1],
             color=[0, 0, 0, 1]
@@ -79,16 +79,33 @@ class MainApp(App):
         main_layout.add_widget(top_layout)
 
         # Search and Filter Section
-        search_filter_layout = BoxLayout(size_hint=(1, None), height=50, spacing=10)
+        search_filter_layout = BoxLayout(size_hint=(1, None), height=50, spacing=100)
+
+        search_group_layout = BoxLayout(size_hint=(0.6, 1), spacing=5)
 
         # Search Bar
-        search_input = TextInput(
+        self.search_input = TextInput(
             hint_text="Search items...",
-            size_hint=(0.7, 1),
+            size_hint=(0.5, 0.8),
             background_color=[0.95, 0.95, 0.95, 1],
-            foreground_color=[0, 0, 0, 1]
+            foreground_color=[0, 0, 0, 1],
+            multiline = False # Ensures when you press enter, search bar doesn't go into a new line
         )
-        search_filter_layout.add_widget(search_input)
+        self.search_input.bind(on_text_validate = self.execute_search)
+        search_group_layout.add_widget(self.search_input) 
+        
+
+        self.search_button = Button(
+            text = "Search",
+            size_hint = (0.1, 0.8),
+            background_normal = '',
+            background_color = [0.2,0.8,0.8,1],
+            color = [1,1,1,1]
+        )
+        self.search_button.bind(on_release = self.execute_search)
+        search_group_layout.add_widget(self.search_button)
+    
+        search_filter_layout.add_widget(search_group_layout)
 
         # Filter Dropdown
         filter_dropdown = DropDown()
@@ -107,7 +124,7 @@ class MainApp(App):
 
         filter_button = Button(
             text="Filter",
-            size_hint=(0.3, 1),
+            size_hint=(0.13, 0.8),
             background_normal='',
             background_color=[0.8, 0.8, 0.8, 1],
             color=[0, 0, 0, 1]
@@ -167,6 +184,11 @@ class MainApp(App):
         main_layout.add_widget(basket_button)
 
         return main_layout
+
+    def execute_search(self, instance):
+            search_query = self.search_input.text.strip()
+            if search_query:
+                print(search_query)
 
     def add_to_basket(self, item):
         self.basket.append(item)
