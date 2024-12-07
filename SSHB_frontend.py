@@ -11,8 +11,11 @@ from kivy.uix.dropdown import DropDown
 from kivy.uix.image import Image
 from kivy.uix.popup import Popup
 from kivy.graphics import Color, Rectangle
-
-
+import backend
+def setup():
+    backend.create_database()
+    backend.filefiller()
+    backend.filetodatabase()
 class MainApp(App):
     def build(self):
         self.theme_color = [29,29,31,1]
@@ -109,7 +112,7 @@ class MainApp(App):
 
         # Filter Dropdown
         filter_dropdown = DropDown()
-        filter_options = ['Price: Low to High', 'Price: High to Low', 'Category: Electronics', 'Category: Clothing']
+        filter_options = ['Price: Low to High', 'Price: High to Low']
         for option in filter_options:
             filter_btn = Button(
                 text=option,
@@ -188,7 +191,7 @@ class MainApp(App):
     def execute_search(self, instance):
             search_query = self.search_input.text.strip()
             if search_query:
-                print(search_query)
+                backend.selectfromdatabase(search_query,0)
 
     def add_to_basket(self, item):
         self.basket.append(item)
@@ -303,12 +306,16 @@ class MainApp(App):
         )
         close_button.bind(on_release=basket_popup.dismiss)
         basket_popup.open()
-
+    def apply_filter(self, filter_type, dropdown):
+        dropdown.dismiss()
+        print(f"filtered {filter_type}")
+        
     def select_filter(self, btn, dropdown):
         dropdown.parent.parent.children[-1].text = btn.text
         dropdown.dismiss()
 
 
 if __name__ == "__main__":
+    setup()
     MainApp().run()
 
