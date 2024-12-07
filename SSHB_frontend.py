@@ -199,16 +199,92 @@ class MainApp(App):
         self.dropdown.dismiss()
 
     def open_basket(self, instance):
-        basket_layout = BoxLayout(orientation='vertical', spacing=10, padding=10)
-        basket_title = Label(text="Your Basket", font_size=20, size_hint_y=None, height=40, color=[0, 0, 0, 1])
-        basket_layout.add_widget(basket_title)
+        basket_layout = BoxLayout(orientation='vertical', spacing=30, padding=10)
+
+        with basket_layout.canvas.before:
+            self.bg_color = Color(*self.theme_color)
+            self.bg_rect = Rectangle(size=basket_layout.size, pos=basket_layout.pos)
+        basket_layout.bind(
+            size=lambda _, size: setattr(self.bg_rect, 'size', size),
+            pos=lambda _, pos: setattr(self.bg_rect, 'pos', pos)
+        )
+        
+        table_layout = GridLayout(cols = 4, spacing = 5, size_hint_y = None)
+        table_layout.bind(minimum_height = table_layout.setter('height'))
+
 
         if self.basket:
+            filter_button_layout = BoxLayout(orientation = 'horizontal', size_hint_y= None, height = 40,spacing = 10)
+            spacer = Label(size_hint_x = 1)
+            filter_dropdown = DropDown()
+            filter_options = ["by Price", "by Your Order"]
+            for option in filter_options:
+                filter_button = Button(
+                    text = option,
+                    size_hint_y = None,
+                    height = 40,
+                    background_normal ='',
+                    background_color = [0.8,0.8,0.8,1],
+                    color = [0,0,0,1]
+                )
+                filter_button.bind(on_release = lambda btn: self.apply_filter(btn.text, filter_dropdown))
+                filter_dropdown.add_widget(filter_button)
+            
+            filter_button = Button(
+                text = "Filter By",
+                size_hint =(None,1),
+                height = 40,
+                width = 150,
+                background_normal = '',
+                background_color = [0.2,0.6,0.8,1],
+                color = [1,1,1,1],
+            )
+            filter_button.bind(on_release = filter_dropdown.open)
+            filter_button_layout.add_widget(spacer)
+            filter_button_layout.add_widget(filter_button)
+            basket_layout.add_widget(filter_button_layout)
+
+
+            headings = ["Student Name", "Product Name", "Price", "Quantity"]
+            for heading in headings:
+                table_layout.add_widget(Label(
+                    text = heading,
+                    bold = True, 
+                    size_hint_y = None,
+                    height = 30,
+                    color = [0,0,0,1]
+                ))
+
             for item in self.basket:
-                basket_item = Label(text=item, size_hint_y=None, height=30, color=[0, 0, 0, 1])
-                basket_layout.add_widget(basket_item)
+                product_name = item
+                table_layout.add_widget(Label(
+                    text = product_name,
+                    size_hint_y = None,
+                    height = 30,
+                    color = [0,0,0,1]
+                ))
+            
+            
         else:
-            basket_layout.add_widget(Label(text="Your basket is empty", size_hint_y=None, height=30))
+            basket_layout.add_widget(Label(text="Your basket is empty", size_hint_y=None, height=30, color = [0,0,0,1]))
+
+        scroll_view = ScrollView(size_hint = (1, 0.6))
+        scroll_view.add_widget(table_layout)
+        basket_layout.add_widget(scroll_view)
+
+        if self.basket:
+            cost_layout = BoxLayout(orientation = 'horizontal', spacing = 10, size_hint_y = None, height = 40)
+            cost_layout.add_widget(Label(
+                text = f"Household Cost: ",
+                size_hint_x = 0.5,
+                color = [0,0,0,1]
+            ))
+            cost_layout.add_widget(Label(
+                text = f"Your Cost: ",
+                size_hint_x = 0.5,
+                color = [0,0,0,1]
+            ))
+            basket_layout.add_widget(cost_layout)
 
         close_button = Button(
             text="Close",
