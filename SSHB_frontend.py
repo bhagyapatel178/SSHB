@@ -20,6 +20,8 @@ class MainApp(App):
     def build(self):
         self.theme_color = [29,29,31,1]
         self.basket = []  # List to store items added to the basket
+        self.student_id = None
+        self.household_id = None
 
         # Main layout
         main_layout = BoxLayout(orientation='vertical', spacing=10, padding=10)
@@ -187,6 +189,66 @@ class MainApp(App):
         main_layout.add_widget(basket_button)
 
         return main_layout
+
+    def on_start(self):
+        self.opening_prompt()
+
+    def opening_prompt(self):
+        prompt_layout = BoxLayout(orientation='vertical', spacing=10, padding=10)
+        # basket_title = Label(text="Enter your student_id and household_id", font_size=15, size_hint_y=None, height=40, color=[0, 0, 0, 1])
+        # basket_layout.add_widget(basket_title)
+
+        self.student_id_intput = TextInput(
+            hint_text = "Enter your Student ID:",
+            multiline = False,
+            size_hint = (1,None),
+            height = 40
+        )
+        prompt_layout.add_widget(self.student_id_intput)
+
+
+        self.household_id_intput = TextInput(
+            hint_text = "Enter your Household ID:",
+            multiline = False,
+            size_hint = (1,None),
+            height = 40
+        )
+        prompt_layout.add_widget(self.household_id_intput)
+
+
+        submit_button = Button(
+            text="Submit",
+            size_hint=(1,None),
+            height=40,
+            background_normal='',
+            background_color=[0.2, 0.8, 0.2, 1],
+            color=[1, 1, 1, 1]
+        )
+        submit_button.bind(on_release = self.update_inputs_to_db)
+        prompt_layout.add_widget(submit_button)
+
+
+        #prompt_layout.add_widget(close_button)
+        self.basket_popup = Popup(
+            title="Enter your details",
+            content=prompt_layout,
+            size_hint=(0.5, 0.3),
+            auto_dismiss = False
+        )
+        self.basket_popup.open()
+       
+    def update_inputs_to_db(self, instance):
+
+        student_id = self.student_id_intput.text.strip()
+        household_id =self.household_id_intput.text.strip()
+
+        if student_id and household_id:
+            self.student_id = student_id
+            self.household_id = household_id
+            print(self.student_id)
+            print(self.household_id)
+            self.basket_popup.dismiss()
+    
 
     def execute_search(self, instance):
             search_query = self.search_input.text.strip()
