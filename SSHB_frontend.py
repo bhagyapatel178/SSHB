@@ -17,8 +17,14 @@ def setup():
     backend.filefiller()
     backend.filetodatabase()
 class MainApp(App):
+    itemstobedisplayed = []
+
+    def setupitems(self):
+        self.itemstobedisplayed = backend.selectfromdatabase("getall", 0)
+
     def build(self):
-        self.theme_color = [29,29,31,1]
+        self.setupitems()
+        self.theme_color = [29, 29, 31, 1]
         self.basket = []  # List to store items added to the basket
         self.student_id = None
         self.household_id = None
@@ -55,7 +61,7 @@ class MainApp(App):
         top_layout.add_widget(profile_picture)
 
         self.dropdown = DropDown()
-        stores = ["Store A", "Store B", "Store C"]
+        stores = ["Store A", "Store B", "Store C", "ALL"]
         for store in stores:
             btn = Button(
                 text=store,
@@ -141,38 +147,13 @@ class MainApp(App):
 
         # Item Box Section
         item_box = ScrollView(size_hint=(1, 1))
-        item_layout = GridLayout(cols=2, size_hint_y=None, spacing=10, padding=10)
-        item_layout.bind(minimum_height=item_layout.setter('height'))
+        self.item_layout = GridLayout(cols=2, size_hint_y=None, spacing=10, padding=10)
+        self.item_layout.bind(minimum_height=self.item_layout.setter('height'))
 
-        # Example items
-        for i in range(10):
-            item_container = BoxLayout(orientation='horizontal', size_hint_y=None, height=200)
-            item_image = Image(source="example.jpg", size_hint=(None, None), size=(100, 100))
-            item_label = Label(
-                text=f"Item {i + 1}",
-                size_hint=(0.5, 1),
-                valign="middle",
-                halign="left",
-                color=[0, 0, 0, 1]
-            )
-            item_label.bind(size=item_label.setter('text_size'))  # Ensure text wraps within label
-
-            add_button = Button(
-                text="Add",
-                size_hint=(None, None),
-                size=(80, 40),
-                background_normal='',
-                background_color=[0.2, 0.8, 0.2, 1],
-                color=[1, 1, 1, 1]
-            )
-            add_button.bind(on_release=lambda instance, item=f"Item {i + 1}": self.add_to_basket(item))
-
-            item_container.add_widget(item_image)
-            item_container.add_widget(item_label)
-            item_container.add_widget(add_button)
-            item_layout.add_widget(item_container)
-
-        item_box.add_widget(item_layout)
+        # Initial items
+        self.refresh_items()
+        
+        item_box.add_widget(self.item_layout)
         main_layout.add_widget(item_box)
 
         # Basket Button
@@ -249,15 +230,53 @@ class MainApp(App):
             print(self.household_id)
             self.basket_popup.dismiss()
     
+    def refresh_items(self):
+        # Clear the current items
+        self.item_layout.clear_widgets()
+        Shopdict = {1: "A", 2:"B", 3:"C",}
+        # Add the filtered items based on self.itemstobedisplayed
+        for i in range(len(self.itemstobedisplayed)):
+            item_container = BoxLayout(orientation='horizontal', size_hint_y=None, height=200)
+            item_image = Image(source="Item_images/" + str(self.itemstobedisplayed[i][0]) + str(self.itemstobedisplayed[i][3]) + ".jpg", size_hint=(None, None), size=(100, 100))
+            item_label = Label(
+                text=str(self.itemstobedisplayed[i][0]) + "\n\n\n£" + str(self.itemstobedisplayed[i][1]) + "\nStore " + str(Shopdict[self.itemstobedisplayed[i][3]]) + "\nstock left: " + str(self.itemstobedisplayed[i][2]),
+                size_hint=(0.5, 1),
+                valign="middle",
+                halign="left",
+                color=[0, 0, 0, 1]
+            )
+            item_label.bind(size=item_label.setter('text_size'))
+
+            add_button = Button(
+                text="Add",
+                size_hint=(None, None),
+                size=(80, 40),
+                background_normal='',
+                background_color=[0.2, 0.8, 0.2, 1],
+                color=[1, 1, 1, 1]
+            )
+            add_button.bind(on_release=lambda instance, item=(self.itemstobedisplayed[i]): self.add_to_basket(item))
+
+            item_container.add_widget(item_image)
+            item_container.add_widget(item_label)
+            item_container.add_widget(add_button)
+
+            self.item_layout.add_widget(item_container)
 
     def execute_search(self, instance):
-            search_query = self.search_input.text.strip()
-            if search_query:
-                backend.selectfromdatabase(search_query,0)
+        search_query = self.search_input.text.strip()
+        Shopdict = {"Store A": 1, "Store B": 2, "Store C": 3, "ALL": 0, "Select Store": 0, "":0}
+        self.itemstobedisplayed = backend.selectfromdatabase(search_query, Shopdict[self.dropdown.main_button.text])
+        self.refresh_items()  # Refresh the items displayed in the UI
 
     def add_to_basket(self, item):
-        self.basket.append(item)
-        print(f"Added to basket: {item}")
+        Shopdict = {1: "A", 2:"B", 3:"C",}
+        self.basket.append("name")
+        self.basket.append(str(item[0]))
+        self.basket.append("£" + str(item[1]))
+        self.basket.append(str(item[2]))
+        self.basket.append(Shopdict[item[3]])
+        #print(f"Added to basket: {item}")
 
     def select_store(self, btn):
         self.dropdown.main_button.text = btn.text
@@ -374,10 +393,13 @@ class MainApp(App):
         
     def select_filter(self, btn, dropdown):
         dropdown.parent.parent.children[-1].text = btn.text
+        self.itemstobedisplayed = sorted(self.itemstobedisplayed, key=lambda x: x[1])
+        if dropdown.parent.parent.children[-1].text == "Price: High to Low":
+            self.itemstobedisplayed = self.itemstobedisplayed[::-1]
+        self.refresh_items()
         dropdown.dismiss()
 
 
 if __name__ == "__main__":
     setup()
     MainApp().run()
-
