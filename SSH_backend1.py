@@ -2,6 +2,7 @@ import sqlite3
 import random
 import socket
 import threading
+import json
 
 def create_database(db_name="SSHDB.db"):
     connection = sqlite3.connect(db_name)
@@ -22,7 +23,6 @@ def create_database(db_name="SSHDB.db"):
             student_id INTEGER NOT NULL,
             price REAL NOT NULL,
             quantity INTEGER,
-            added_at TEXT NOT NULL,
             product_id INTEGER NOT NULL,
             FOREIGN KEY (student_id) REFERENCES students(student_id),
             FOREIGN KEY (product_id) REFERENCES products(product_id)
@@ -47,7 +47,7 @@ def create_database(db_name="SSHDB.db"):
             student_id INTEGER PRIMARY KEY NOT NULL,
             student_name TEXT NOT NULL,
             household_id INTEGER NOT NULL,
-            email TEXT UNIQUE NOT NULL,
+            email TEXT NOT NULL,
             FOREIGN KEY (household_id) REFERENCES households(household_id)
         )
     """)
@@ -75,7 +75,7 @@ def filefiller(): #fills file with dummy data
             for i in range(len(shopping_items)):
                 productid = (i+1)+(100*supermarke)
                 productname = shopping_items[i]
-                price = round(random.uniform(0.5, 4), 2)
+                price = float(str(random.uniform(0.5, 4))[:4])
                 availability = random.randint(0,200)
                 file.write(str(productid) + "," + productname + "," + str(price) + "," + str(availability) + "," + str(supermarke + 1) + "\n") #writes data in the form: id,name,price,availability,supermarketid
 
@@ -93,7 +93,7 @@ def filetodatabase(db_name="SSHDB.db"):
                 product_id, product_name, price, availability, supermarket_id = line.split(',')
                 product_id = int(product_id)
                 price = float(price)
-                availability = availability
+                availability = int(availability)
                 supermarket_id = int(supermarket_id)
 
                 cursor.execute("""
