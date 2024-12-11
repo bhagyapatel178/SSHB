@@ -12,22 +12,49 @@ from kivy.uix.image import Image
 from kivy.uix.popup import Popup
 from kivy.graphics import Color, Rectangle
 import backend
-def setup():
-    backend.create_database()
-    backend.filefiller()
-    backend.filetodatabase()
+import socket
+import json
+
 class MainApp(App):
     itemstobedisplayed = []
+    totalprice = 0
+    yourcost = 0
+
+    def start_client(self,message):
+        host = '127.0.0.1'  # Server's address
+        port = 65432        # Port to connect to
+
+        # Create a socket object
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        # Connect to the server
+        client_socket.connect((host, port))
+        print(f"Connected to server at {host}:{port}")
+
+        try:
+            client_socket.sendall(message.encode())
+            data = client_socket.recv(4096)  # Buffer size
+            response = data.decode()
+            if message.startswith("selectfromdatabase"):#
+                self.itemstobedisplayed = json.loads(response)
+            if message.startswith("viewbasket"):
+                self.basket = json.loads(response)#
+                print(self.basket)
+            print(f"Received from server: {data.decode()}")
+        except KeyboardInterrupt:
+            print("\nConnection closed.")
+
+        # Close the connection
+        client_socket.close()
 
     def setupitems(self):
-        self.itemstobedisplayed = backend.selectfromdatabase("getall", 0)
+        self.start_client("selectfromdatabase,getall,0")
 
     def build(self):
         self.setupitems()
         self.theme_color = [29, 29, 31, 1]
         self.basket = []  # List to store items added to the basket
-        self.student_id = None
-        self.household_id = None
+        
 
         # Main layout
         main_layout = BoxLayout(orientation='vertical', spacing=10, padding=10)
@@ -176,8 +203,6 @@ class MainApp(App):
 
     def opening_prompt(self):
         prompt_layout = BoxLayout(orientation='vertical', spacing=10, padding=10)
-        # basket_title = Label(text="Enter your student_id and household_id", font_size=15, size_hint_y=None, height=40, color=[0, 0, 0, 1])
-        # basket_layout.add_widget(basket_title)
 
         self.student_id_intput = TextInput(
             hint_text = "Enter your Student ID:",
@@ -209,7 +234,6 @@ class MainApp(App):
         prompt_layout.add_widget(submit_button)
 
 
-        #prompt_layout.add_widget(close_button)
         self.basket_popup = Popup(
             title="Enter your details",
             content=prompt_layout,
@@ -226,8 +250,7 @@ class MainApp(App):
         if student_id and household_id:
             self.student_id = student_id
             self.household_id = household_id
-            print(self.student_id)
-            print(self.household_id)
+            self.start_client("studentfunc," + str(self.student_id) + "," + str(self.household_id))
             self.basket_popup.dismiss()
     
     def refresh_items(self):
@@ -255,7 +278,7 @@ class MainApp(App):
                 background_color=[0.2, 0.8, 0.2, 1],
                 color=[1, 1, 1, 1]
             )
-            add_button.bind(on_release=lambda instance, item=(self.itemstobedisplayed[i]): self.add_to_basket(item))
+            add_button.bind(on_release=lambda instance, item=(self.itemstobedisplayed[i]): self.add_to_basket(item,self.student_id))
 
             item_container.add_widget(item_image)
             item_container.add_widget(item_label)
@@ -266,23 +289,18 @@ class MainApp(App):
     def execute_search(self, instance):
         search_query = self.search_input.text.strip()
         Shopdict = {"Store A": 1, "Store B": 2, "Store C": 3, "ALL": 0, "Select Store": 0, "":0}
-        self.itemstobedisplayed = backend.selectfromdatabase(search_query, Shopdict[self.dropdown.main_button.text])
+        self.start_client("selectfromdatabase," + search_query + "," + str(Shopdict[self.dropdown.main_button.text]))
         self.refresh_items()  # Refresh the items displayed in the UI
 
-    def add_to_basket(self, item):
-        Shopdict = {1: "A", 2:"B", 3:"C",}
-        self.basket.append("name")
-        self.basket.append(str(item[0]))
-        self.basket.append("£" + str(item[1]))
-        self.basket.append(str(item[2]))
-        self.basket.append(Shopdict[item[3]])
-        #print(f"Added to basket: {item}")
+    def add_to_basket(self, item,student_id):
+        self.start_client(f"add,{item}!{student_id}")
 
     def select_store(self, btn):
         self.dropdown.main_button.text = btn.text
         self.dropdown.dismiss()
 
     def open_basket(self, instance):
+        self.start_client(f"viewbasket,{self.student_id}!{self.household_id}")
         basket_layout = BoxLayout(orientation='vertical', spacing=30, padding=10)
 
         with basket_layout.canvas.before:
@@ -329,7 +347,7 @@ class MainApp(App):
             basket_layout.add_widget(filter_button_layout)
 
 
-            headings = ["Student Name", "Product Name", "Price", "Quantity"]
+            headings = ["Student Name", "Product Name", "Price","Supermarket"]
             for heading in headings:
                 table_layout.add_widget(Label(
                     text = heading,
@@ -339,8 +357,13 @@ class MainApp(App):
                     color = [0,0,0,1]
                 ))
 
-            for item in self.basket:
-                product_name = item
+            self.totalprice = 0
+            for item in range (len(self.basket)):
+                if item%2 == 0 and item%4 != 0:
+                    product_name = f"£{float(self.basket[item]):.2f}"
+                    self.totalprice += float(self.basket[item])
+                else:
+                    product_name = str(self.basket[item])
                 table_layout.add_widget(Label(
                     text = product_name,
                     size_hint_y = None,
@@ -359,12 +382,18 @@ class MainApp(App):
         if self.basket:
             cost_layout = BoxLayout(orientation = 'horizontal', spacing = 10, size_hint_y = None, height = 40)
             cost_layout.add_widget(Label(
-                text = f"Household Cost: ",
+                text = f"Household Cost: £{self.totalprice:.2f} ",
                 size_hint_x = 0.5,
                 color = [0,0,0,1]
             ))
+
+            self.yourcost = 0
+            for i in range(len(self.basket)):
+                if self.basket[i] == int(self.student_id):
+                    self.yourcost += self.basket[i+2]
+            
             cost_layout.add_widget(Label(
-                text = f"Your Cost: ",
+                text = f"Your Cost: £{self.yourcost:.2f}",
                 size_hint_x = 0.5,
                 color = [0,0,0,1]
             ))
@@ -401,5 +430,4 @@ class MainApp(App):
 
 
 if __name__ == "__main__":
-    setup()
     MainApp().run()
