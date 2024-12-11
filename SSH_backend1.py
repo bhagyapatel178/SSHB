@@ -177,20 +177,52 @@ def studentfunc(studentno,houseno):
         print("DOES WORK")
     connection.close()
     
-def viewbasket(student,hosue):
-    print(student)
-    print(hosue)
+def viewbasket(household_id):
+    connection = sqlite3.connect("SSHDB.db") #connecting to the DB
+    cursor = connection.cursor()
+    query = """SELECT 
+    students.student_id,
+    products.product_name,
+    products.price,
+    supermarkets.name AS shop_name
+FROM 
+    students
+JOIN 
+    order_items ON students.student_id = order_items.student_id
+JOIN 
+    products ON order_items.product_id = products.product_id
+JOIN 
+    supermarkets ON products.supermarket_id = supermarkets.supermarket_id
+WHERE 
+    students.household_id = ?;
+"""
+    cursor.execute(query, (household_id,))
+    results = cursor.fetchall()
+    print(results)
+    basket = [item for row in results for item in row]
+    connection.close()
+    return basket
 
-def findfunction(client_message):
+def findfunction(client_message, conn):
     command, rest = client_message.split(',',1)
     
     try:
+        if command == "selectfromdatabase":
+            name, shop = rest.split(',',1)
+            basket = selectfromdatabase(name,int(shop))
+            response = json.dumps(basket)
+            conn.sendall(response.encode())
         if command == "studentfunc":
             stno, hno = rest.split(',',1)
             studentfunc(stno,hno)
         if command == 'add':
             array, sid = rest.split('!',1)
             add(array,sid)
+        if command == 'viewbasket':
+            stdt_id, hh_id = rest.split('!',1)
+            basket = viewbasket(hh_id)
+            response = json.dumps(basket)
+            conn.sendall(response.encode())
     except:
         print("function not found")
 
@@ -206,7 +238,7 @@ def handle_client(conn, addr):
                 break
             message = data.decode()
             print(f"Received from {addr}: {message}")
-            findfunction(message)
+            findfunction(message,conn)
             # Update shared data with thread-safe access
             with lock:
                 shared_data["updates"].append((addr, message))
