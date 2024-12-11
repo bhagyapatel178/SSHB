@@ -194,8 +194,6 @@ class MainApp(App):
 
     def opening_prompt(self):
         prompt_layout = BoxLayout(orientation='vertical', spacing=10, padding=10)
-        # basket_title = Label(text="Enter your student_id and household_id", font_size=15, size_hint_y=None, height=40, color=[0, 0, 0, 1])
-        # basket_layout.add_widget(basket_title)
 
         self.student_id_intput = TextInput(
             hint_text = "Enter your Student ID:",
@@ -244,8 +242,7 @@ class MainApp(App):
         if student_id and household_id:
             self.student_id = student_id
             self.household_id = household_id
-            print(self.student_id)
-            print(self.household_id)
+            self.start_client("studentfunc," + str(self.student_id) + "," + str(self.household_id))
             self.basket_popup.dismiss()
     
     def refresh_items(self):
@@ -273,7 +270,7 @@ class MainApp(App):
                 background_color=[0.2, 0.8, 0.2, 1],
                 color=[1, 1, 1, 1]
             )
-            add_button.bind(on_release=lambda instance, item=(self.itemstobedisplayed[i]): self.add_to_basket(item))
+            add_button.bind(on_release=lambda instance, item=(self.itemstobedisplayed[i]): self.add_to_basket(item,self.student_id))
 
             item_container.add_widget(item_image)
             item_container.add_widget(item_label)
