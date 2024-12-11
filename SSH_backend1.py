@@ -1,5 +1,7 @@
 import sqlite3
 import random
+import socket
+import threading
 
 def create_database(db_name="SSHDB.db"):
     connection = sqlite3.connect(db_name)
@@ -33,7 +35,7 @@ def create_database(db_name="SSHDB.db"):
             product_id INTEGER PRIMARY KEY NOT NULL,
             product_name TEXT NOT NULL,
             price REAL NOT NULL,
-            availability BOOLEAN,
+            availability INTEGER,
             supermarket_id INTEGER NOT NULL,
             FOREIGN KEY (supermarket_id) REFERENCES supermarkets(supermarket_id)
         )
@@ -71,11 +73,11 @@ def filefiller(): #fills file with dummy data
         fileclear()  # Clear the file before filling it
         for supermarke in range(3): #items from three shops
             for i in range(len(shopping_items)):
-                productid = str((i+1)+(100*supermarke))
+                productid = (i+1)+(100*supermarke)
                 productname = shopping_items[i]
-                price = f"{round(random.uniform(0.5, 4), 2):.2f}"
-                availability = '0' if random.randint(0, 10) > 9 else '1'
-                file.write(productid + "," + productname + "," + str(price) + "," + availability + "," + str(supermarke + 1) + "\n") #writes data in the form: id,name,price,availability,supermarketid
+                price = round(random.uniform(0.5, 4), 2)
+                availability = random.randint(0,200)
+                file.write(str(productid) + "," + productname + "," + str(price) + "," + str(availability) + "," + str(supermarke + 1) + "\n") #writes data in the form: id,name,price,availability,supermarketid
 
 def filetodatabase(db_name="SSHDB.db"):
     connection = sqlite3.connect(db_name) #connecting to the DB
@@ -91,7 +93,7 @@ def filetodatabase(db_name="SSHDB.db"):
                 product_id, product_name, price, availability, supermarket_id = line.split(',')
                 product_id = int(product_id)
                 price = float(price)
-                availability = int(availability)
+                availability = availability
                 supermarket_id = int(supermarket_id)
 
                 cursor.execute("""
@@ -122,13 +124,81 @@ def selectfromdatabase(productname, shop): #all products: productname = "getall"
 
     result = cursor.fetchall()
     connection.close()
+    returnarr = []
     for item in result:
         name = item[1]
         price = item[2]
         availability = item[3]
-        print(f"Product: {name}, Price: {price}, Available: {availability}")
+        store = item[4]
+        returnarr.append([name,price,availability,store])
+    return returnarr
 
-create_database()  # Create the database with all necessary tables
-filefiller()  # Fill the API.txt with sample data
-filetodatabase()  # Insert data from API.txt into database
-selectfromdatabase("chees", 0)  # Query data from the database
+def setup():
+    create_database()
+    filefiller()
+    filetodatabase()
+
+def add():
+    print("add function")
+def basket():
+    print("basket function")
+def student():
+    print("student function")
+def viewbasket(student,hosue):
+    print(student)
+    print(hosue)
+
+def findfunction(client_message):
+    msg = client_message.split(',')
+    print(msg)
+    try:
+        if len(msg) == 1:
+            eval(msg[0] + "()")
+        if len(msg) == 3:
+            eval(msg[0] + "(msg[1],msg[2])")
+    except:
+        print("function not found")
+
+shared_data = {"updates": []}
+lock = threading.Lock()
+
+def handle_client(conn, addr):
+    print(f"New connection from {addr}")
+    try:
+        while True:
+            data = conn.recv(1024)  # Receive data from the client
+            if not data:
+                break
+            message = data.decode()
+            print(f"Received from {addr}: {message}")
+            findfunction(message)
+            # Update shared data with thread-safe access
+            with lock:
+                shared_data["updates"].append((addr, message))
+            conn.sendall(f"Message received: {message}".encode())
+    except ConnectionResetError:
+        print(f"Connection with {addr} closed unexpectedly.")
+    finally:
+        conn.close()
+        print(f"Connection with {addr} closed.")
+
+def start_server():
+    host = '127.0.0.1'
+    port = 65432
+
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server_socket.bind((host, port))
+    server_socket.listen(5)  # Allow up to 5 queued connections
+    print(f"Server listening on {host}:{port}")
+
+    while True:
+        conn, addr = server_socket.accept()
+        # Start a new thread for each client
+        thread = threading.Thread(target=handle_client, args=(conn, addr))
+        thread.start()
+        print(f"Active connections: {threading.active_count() - 1}")
+
+if __name__ == "__main__":
+    setup()
+    start_server()
