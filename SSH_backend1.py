@@ -138,8 +138,27 @@ def setup():
     filefiller()
     filetodatabase()
 
-def add():
-    print("add function")
+def add(arr, student_id):
+    product_name, price, quantity, shopname = eval(arr)
+    connection = sqlite3.connect("SSHDB.db") #connecting to the DB
+    cursor = connection.cursor()
+    query = """
+        SELECT product_id FROM products WHERE product_name = ? AND supermarket_id = ?
+    """
+    cursor.execute(query, (product_name,shopname,))
+    result = cursor.fetchall()
+    if result is None:
+        print("error: product not found in database")
+
+    product_id = result[0]
+    query = """
+        INSERT INTO order_items (student_id, price, quantity, product_id)
+        VALUES (?, ?, ?, ?) 
+    """
+    cursor.execute(query, (student_id, price, quantity, product_id[0],))
+    connection.commit()
+    connection.close()
+    
 def basket():
     print("basket function")
     
@@ -164,11 +183,14 @@ def viewbasket(student,hosue):
 
 def findfunction(client_message):
     command, rest = client_message.split(',',1)
-    print(msg)
+    
     try:
         if command == "studentfunc":
             stno, hno = rest.split(',',1)
             studentfunc(stno,hno)
+        if command == 'add':
+            array, sid = rest.split('!',1)
+            add(array,sid)
     except:
         print("function not found")
 
