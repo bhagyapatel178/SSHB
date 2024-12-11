@@ -17,6 +17,7 @@ import json
 
 class MainApp(App):
     itemstobedisplayed = []
+    totalprice = 0
 
     def start_client(self,message):
         host = '127.0.0.1'  # Server's address
@@ -346,7 +347,7 @@ class MainApp(App):
             basket_layout.add_widget(filter_button_layout)
 
 
-            headings = ["Student Name", "Product Name", "Price", "Quantity"]
+            headings = ["Student Name", "Product Name", "Price","Supermarket"]
             for heading in headings:
                 table_layout.add_widget(Label(
                     text = heading,
@@ -356,8 +357,13 @@ class MainApp(App):
                     color = [0,0,0,1]
                 ))
 
-            for item in self.basket:
-                product_name = item
+            self.totalprice = 0
+            for item in range (len(self.basket)):
+                if item%2 == 0 and item%4 != 0:
+                    product_name = f"£{float(self.basket[item]):.2f}"
+                    self.totalprice += float(self.basket[item])
+                else:
+                    product_name = str(self.basket[item])
                 table_layout.add_widget(Label(
                     text = product_name,
                     size_hint_y = None,
@@ -376,7 +382,7 @@ class MainApp(App):
         if self.basket:
             cost_layout = BoxLayout(orientation = 'horizontal', spacing = 10, size_hint_y = None, height = 40)
             cost_layout.add_widget(Label(
-                text = f"Household Cost: ",
+                text = f"Household Cost: £{self.totalprice:.2f} ",
                 size_hint_x = 0.5,
                 color = [0,0,0,1]
             ))
