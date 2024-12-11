@@ -1,9 +1,9 @@
 import unittest 
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock 
 import io
 import os 
 import sqlite3
-from SSH_backend import create_database, fileclear, filefiller, filetodatabase, selectfromdatabase
+from SSH_backend1 import create_database, fileclear, filefiller, filetodatabase, selectfromdatabase, viewbasket 
 
 
 class TestBackendFunction(unittest.TestCase):
@@ -62,6 +62,54 @@ class TestBackendFunction(unittest.TestCase):
         printed_lines = printed_output.strip().split("\n")
 
         self.assertEqual(len(printed_lines), total_products)
+
+class TestViewBasket(unittest.TestCase):
+    @patch("sqlite3.connect")  # Mock sqlite3.connect
+    def test_viewbasket(self, mock_connect):
+        # Define mock data to be returned by the database query
+        mock_results = [
+            (1, "Apple", 1.5, "SuperMart"),
+            (2, "Banana", 0.8, "QuickShop"),
+        ]
+
+        # Set up mock connection and cursor
+        mock_cursor = MagicMock()
+        mock_cursor.fetchall.return_value = mock_results
+        mock_connection = MagicMock()
+        mock_connection.cursor.return_value = mock_cursor
+        mock_connect.return_value = mock_connection
+
+        # Call the function with a test household_id
+        household_id = 123
+        basket = viewbasket(household_id)
+
+        # Assert the query was executed with the correct parameter
+        mock_cursor.execute.assert_called_once_with(
+            """SELECT 
+    students.student_id,
+    products.product_name,
+    products.price,
+    supermarkets.name AS shop_name
+FROM 
+    students
+JOIN 
+    order_items ON students.student_id = order_items.student_id
+JOIN 
+    products ON order_items.product_id = products.product_id
+JOIN 
+    supermarkets ON products.supermarket_id = supermarkets.supermarket_id
+WHERE 
+    students.household_id = ?;
+""",
+            (household_id,),
+        )
+
+        # Assert the basket contains the correct flattened results
+        expected_basket = [1, "Apple", 1.5, "SuperMart", 2, "Banana", 0.8, "QuickShop"]
+        self.assertEqual(basket, expected_basket)
+
+        # Assert that the connection is closed
+        mock_connection.close.assert_called_once()
 
 if __name__ == "__main__":
     unittest.main()
