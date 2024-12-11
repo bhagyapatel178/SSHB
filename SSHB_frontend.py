@@ -18,6 +18,7 @@ import json
 class MainApp(App):
     itemstobedisplayed = []
     totalprice = 0
+    yourcost = 0
 
     def start_client(self,message):
         host = '127.0.0.1'  # Server's address
@@ -233,7 +234,6 @@ class MainApp(App):
         prompt_layout.add_widget(submit_button)
 
 
-        #prompt_layout.add_widget(close_button)
         self.basket_popup = Popup(
             title="Enter your details",
             content=prompt_layout,
@@ -386,8 +386,14 @@ class MainApp(App):
                 size_hint_x = 0.5,
                 color = [0,0,0,1]
             ))
+
+            self.yourcost = 0
+            for i in range(len(self.basket)):
+                if self.basket[i] == int(self.student_id):
+                    self.yourcost += self.basket[i+2]
+            
             cost_layout.add_widget(Label(
-                text = f"Your Cost: ",
+                text = f"Your Cost: £{self.yourcost:.2f}",
                 size_hint_x = 0.5,
                 color = [0,0,0,1]
             ))
