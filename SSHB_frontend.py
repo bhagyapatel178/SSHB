@@ -13,6 +13,7 @@ from kivy.uix.popup import Popup
 from kivy.graphics import Color, Rectangle
 import backend
 import socket
+import json
 
 class MainApp(App):
     itemstobedisplayed = []
@@ -30,7 +31,13 @@ class MainApp(App):
 
         try:
             client_socket.sendall(message.encode())
-            data = client_socket.recv(1024)  # Buffer size
+            data = client_socket.recv(4096)  # Buffer size
+            response = data.decode()
+            if message.startswith("selectfromdatabase"):#
+                self.itemstobedisplayed = json.loads(response)
+            if message.startswith("viewbasket"):
+                self.basket = json.loads(response)#
+                print(self.basket)
             print(f"Received from server: {data.decode()}")
         except KeyboardInterrupt:
             print("\nConnection closed.")
@@ -292,7 +299,7 @@ class MainApp(App):
         self.dropdown.dismiss()
 
     def open_basket(self, instance):
-        self.start_client("viewbasket,123,123")
+        self.start_client(f"viewbasket,{self.student_id}!{self.household_id}")
         basket_layout = BoxLayout(orientation='vertical', spacing=30, padding=10)
 
         with basket_layout.canvas.before:
