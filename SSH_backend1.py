@@ -85,6 +85,10 @@ def filetodatabase(db_name="SSHDB.db"):
 
 
     cursor.execute("DELETE FROM products") #clearing old data to then put in updated figures
+    cursor.execute("DELETE FROM supermarkets")
+    cursor.execute("INSERT INTO supermarkets (supermarket_id, name) VALUES(1,'A')")
+    cursor.execute("INSERT INTO supermarkets (supermarket_id, name) VALUES(2,'B')")
+    cursor.execute("INSERT INTO supermarkets (supermarket_id, name) VALUES(3,'C')")
 
     with open("API.txt", 'r') as file:
         for line in file:
