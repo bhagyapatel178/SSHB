@@ -12,12 +12,31 @@ from kivy.uix.image import Image
 from kivy.uix.popup import Popup
 from kivy.graphics import Color, Rectangle
 import backend
-def setup():
-    backend.create_database()
-    backend.filefiller()
-    backend.filetodatabase()
+import socket
+
 class MainApp(App):
     itemstobedisplayed = []
+
+    def start_client(self,message):
+        host = '127.0.0.1'  # Server's address
+        port = 65432        # Port to connect to
+
+        # Create a socket object
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        # Connect to the server
+        client_socket.connect((host, port))
+        print(f"Connected to server at {host}:{port}")
+
+        try:
+            client_socket.sendall(message.encode())
+            data = client_socket.recv(1024)  # Buffer size
+            print(f"Received from server: {data.decode()}")
+        except KeyboardInterrupt:
+            print("\nConnection closed.")
+
+        # Close the connection
+        client_socket.close()
 
     def setupitems(self):
         self.itemstobedisplayed = backend.selectfromdatabase("getall", 0)
@@ -26,8 +45,7 @@ class MainApp(App):
         self.setupitems()
         self.theme_color = [29, 29, 31, 1]
         self.basket = []  # List to store items added to the basket
-        self.student_id = None
-        self.household_id = None
+        
 
         # Main layout
         main_layout = BoxLayout(orientation='vertical', spacing=10, padding=10)
@@ -276,6 +294,7 @@ class MainApp(App):
         self.basket.append("£" + str(item[1]))
         self.basket.append(str(item[2]))
         self.basket.append(Shopdict[item[3]])
+        self.start_client("add")
         #print(f"Added to basket: {item}")
 
     def select_store(self, btn):
@@ -283,6 +302,7 @@ class MainApp(App):
         self.dropdown.dismiss()
 
     def open_basket(self, instance):
+        self.start_client("viewbasket,123,123")
         basket_layout = BoxLayout(orientation='vertical', spacing=30, padding=10)
 
         with basket_layout.canvas.before:
@@ -401,5 +421,4 @@ class MainApp(App):
 
 
 if __name__ == "__main__":
-    setup()
     MainApp().run()
