@@ -1,5 +1,5 @@
 # Student Smart Home - Home Delivery App
-**The Student Smart Home -** Home Delivery App is a collaborative project designed to enhance the shopping experience for students living in shared households. By consolidating orders, the app aims to reduce overall costs and improve shopping efficiency, making life easier for students.
+**The Student Smart Home -** Home Delivery App is a collaborative project designed to enhance the shopping experience for students living in shared households. By collectivising orders, the app aims to reduce overall costs and improve shopping efficiency, making life easier for students.
 
 ## Table of Contents
 * Project Overview
@@ -31,7 +31,7 @@ The Home Delivery App is a user-friendly web application that enables students t
 * Monitor both individual and household costs.
 
 ## Technologies Used
-* Frontend: Kivy - A Python framework for building multi-platform user interfaces.
-* Backend: Python - Powering the app's core logic and communication with the database and server.
-* Database: SQLite - A lightweight database for managing product and user data.
+* Frontend: Kivy - A Python framework for building user interfaces.
+* Backend: Python - Powering the app's logic and communication with the database and server.
+* Database: SQLite - A lightweight database for managing data.
 * Version Control: GitHub - Collaborative version control and code management.
