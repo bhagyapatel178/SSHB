@@ -39,7 +39,7 @@ class MainApp(App):
         client_socket.close()
 
     def setupitems(self):
-        self.itemstobedisplayed = backend.selectfromdatabase("getall", 0)
+        self.start_client("selectfromdatabase,getall,0")
 
     def build(self):
         self.setupitems()
@@ -278,21 +278,14 @@ class MainApp(App):
 
             self.item_layout.add_widget(item_container)
 
-    def execute_search(self, instance):
+   def execute_search(self, instance):
         search_query = self.search_input.text.strip()
         Shopdict = {"Store A": 1, "Store B": 2, "Store C": 3, "ALL": 0, "Select Store": 0, "":0}
-        self.itemstobedisplayed = backend.selectfromdatabase(search_query, Shopdict[self.dropdown.main_button.text])
+        self.start_client("selectfromdatabase," + search_query + "," + str(Shopdict[self.dropdown.main_button.text]))
         self.refresh_items()  # Refresh the items displayed in the UI
 
-    def add_to_basket(self, item):
-        Shopdict = {1: "A", 2:"B", 3:"C",}
-        self.basket.append("name")
-        self.basket.append(str(item[0]))
-        self.basket.append("£" + str(item[1]))
-        self.basket.append(str(item[2]))
-        self.basket.append(Shopdict[item[3]])
-        self.start_client("add")
-        #print(f"Added to basket: {item}")
+    def add_to_basket(self, item,student_id):
+        self.start_client(f"add,{item}!{student_id}")
 
     def select_store(self, btn):
         self.dropdown.main_button.text = btn.text
