@@ -142,20 +142,33 @@ def add():
     print("add function")
 def basket():
     print("basket function")
-def student():
-    print("student function")
+    
+def studentfunc(studentno,houseno):
+    connection = sqlite3.connect("SSHDB.db") #connecting to the DB
+    cursor = connection.cursor() #tool to navigate DB
+    query = "SELECT * FROM students where student_id = ?"
+    cursor.execute(query, (studentno,))
+    result = cursor.fetchall()
+    if len(result) == 0:
+        cursor.execute("""INSERT INTO students (student_id, student_name, household_id, email)
+                    VALUES (?, ?, ?, ?)
+                """, (studentno, "dummyfornow", houseno, "Example@gmail.com"))
+        connection.commit()
+    else:
+        print("DOES WORK")
+    connection.close()
+    
 def viewbasket(student,hosue):
     print(student)
     print(hosue)
 
 def findfunction(client_message):
-    msg = client_message.split(',')
+    command, rest = client_message.split(',',1)
     print(msg)
     try:
-        if len(msg) == 1:
-            eval(msg[0] + "()")
-        if len(msg) == 3:
-            eval(msg[0] + "(msg[1],msg[2])")
+        if command == "studentfunc":
+            stno, hno = rest.split(',',1)
+            studentfunc(stno,hno)
     except:
         print("function not found")
 
