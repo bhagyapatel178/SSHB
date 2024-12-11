@@ -286,7 +286,7 @@ class MainApp(App):
 
             self.item_layout.add_widget(item_container)
 
-   def execute_search(self, instance):
+    def execute_search(self, instance):
         search_query = self.search_input.text.strip()
         Shopdict = {"Store A": 1, "Store B": 2, "Store C": 3, "ALL": 0, "Select Store": 0, "":0}
         self.start_client("selectfromdatabase," + search_query + "," + str(Shopdict[self.dropdown.main_button.text]))
