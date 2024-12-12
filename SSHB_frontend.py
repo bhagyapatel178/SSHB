@@ -11,7 +11,6 @@ from kivy.uix.dropdown import DropDown
 from kivy.uix.image import Image
 from kivy.uix.popup import Popup
 from kivy.graphics import Color, Rectangle
-import backend
 import socket
 import json
 
